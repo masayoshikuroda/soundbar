@@ -5,8 +5,6 @@ import json
 from argparse import ArgumentParser
 from bleak import BleakClient
 
-BT_ADDRESS            = "62BC9137-F6CC-42EF-ABF3-F3D8AA2E6DC8"
-
 UUID_MODEL_NUMBER     = "00002a24-0000-1000-8000-00805f9b34fb"
 UUID_DEVICE_NAME      = "00002a00-0000-1000-8000-00805f9b34fb"
 UUID_MANUFACTURE_NAME = "00002a29-0000-1000-8000-00805f9b34fb"
