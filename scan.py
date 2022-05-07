@@ -1,5 +1,10 @@
+import sys
 import asyncio
 from bleak import BleakScanner
+
+name = 'YAS-108_BLE'
+if len(sys.argv) > 1:
+  name = sys.argv[1]
 
 async def run():
     scanner = BleakScanner()
@@ -8,7 +13,7 @@ async def run():
     await scanner.stop()
 
     for d in scanner.discovered_devices:
-        if d.name == "YAS-108_BLE":
+        if d.name == name:
             print("NAME    : ", d.name)
             print("ADDRESS : ", d.address)
             print("RSSI    : ", d.rssi)
