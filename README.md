@@ -38,7 +38,7 @@ soundbar % python soundbar.py $ADDRESS
 soundbar %  
 ```
 
-# コマンドの実行
+## コマンドの実行
 
 オプションを指定してsoundbar.pyを実行
 ```
@@ -55,3 +55,8 @@ soundbar % python soundbar.py $ADDRESS --surround movie --sound_3d on --clear_vo
 }
 soundbar % 
 ```
+# ブラウザ上での例
+
+JavaScript上のWebBluetooth APIでのコマンド実行例
+
+https://masayoshikuroda.github.io/soundbar/soundbar.html

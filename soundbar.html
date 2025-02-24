@@ -1,0 +1,164 @@
+<h1>YAMAHA YAS-108</h1>
+<h2>Remote Controller</h2>
+
+<button type="button" onclick="onButtonClick()" style="visibility: hidden;">Test</button>
+
+<h3>Connection:</h3>
+<div>
+    <button type="button" onclick="onConnectClick()">connect</button>
+    <button type="button" onclick="onDisonnectClick()">disconnect</button>
+</div>
+
+<h3>Paramters:</h3>
+<div>
+    <label>SURROUND:</label>
+    <button type button onclick="setParams(120, 217, 108)">MOVIE</button>
+    <button type button onclick="setParams(120,  80, 245)">STEREO</button>
+    <button type button onclick="setParams(126, 241,  78)">TV</button>
+    <button type button onclick="setParams(120, 219, 106)">SPORTS</button>
+    <button type button onclick="setParams(120, 220, 105)">GAME</button>
+    <button type button onclick="setParams(120, 218, 107)">MUSIC</button>
+</div>
+<div>
+    <label>MUTE:</label>
+    <button type button onclick="setParams(126, 162, 157)">ON</button>
+    <button type button onclick="setParams(126, 163, 156)">OFF</button>
+</div>
+
+<h3>Send:</h3>
+<div>
+    <input type="number" id="b1" name="b1" min="0" max="255" value=126 />
+    <input type="number" id="b2" name="b2" min="0" max="255" value=162 />
+    <input type="number" id="b3" name="b2" min="0" max="255" value=157 />
+    <button type="button" onclick="onWriteClick()">write</button>
+</div>
+
+<div id="output" class="output">
+  <pre id="log"></pre>
+</div>
+
+<script>
+
+sb = null;
+async function onConnectClick() {
+    sb = await SoundBar.connect();
+    await sb.startNotify();
+}
+async function onDisonnectClick() {
+    await sb.disconnect();
+}
+function setParams(b1, b2, b3) {
+    document.getElementById("b1").value = b1
+    document.getElementById("b2").value = b2
+    document.getElementById("b3").value = b3
+}
+
+async function onWriteClick() {
+    const b1 = parseInt(document.getElementById("b1").value);
+    const b2 = parseInt(document.getElementById("b2").value);
+    const b3 = parseInt(document.getElementById("b3").value);
+    await sb.writeCommand(b1, b2, b3);
+    await sb.writeRequest();
+}
+
+function sleep(ms) {
+    console.log('Sleeping ' + ms + ' milisecond...');
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function log(line) {
+    document.querySelector('#log').textContent += line + '\n';
+    console.log(line);
+}
+
+class SoundBar {
+    static NAME = "YAS-108_BLE";
+    static SERVICE_UUID = "945ca2b0-852c-4ab8-b654-354df41c2795";
+    static CHAR_WIRTE_UUID = "0c50e7fa-594c-408b-ae0d-b53b884b7c08";
+    static CHAR_NOTIFY_UUID = "5cafe9de-e7b0-4e0b-8fb9-2da91a7ae3ed";
+
+    static createDeviceOption() {
+        var options = {};
+        options.services = [ this.SERVICE_UUID ];
+        //options.optionalServices = [ this.SERVICE_UUID ];
+        options.filters = [ { name: this.NAME } ];
+        return options;
+    }
+
+    static async build(device) {
+        const server = await device.gatt.connect();
+        console.log('Connected!');
+        
+        const service = await server.getPrimaryService(this.SERVICE_UUID);
+        console.log('Got primary service!');
+
+        const charWrite = await service.getCharacteristic(SoundBar.CHAR_WIRTE_UUID);
+        console.log("Got WRITE characteristic!");
+
+        const charNotify = await service.getCharacteristic(SoundBar.CHAR_NOTIFY_UUID);
+        console.log("Got NOTIFY characteristic!");
+
+        const soundBar = new SoundBar();
+        soundBar.server = server;
+        soundBar.service = service;
+        soundBar.charWrite  = charWrite;
+        soundBar.charNotify  = charNotify;
+        device.addEventListener('gattserverdisconnected', soundBar.onDisconnected);
+
+        return soundBar;
+    }
+
+    static async connect() {
+        const options = SoundBar.createDeviceOption();
+        const device = await navigator.bluetooth.requestDevice(options);
+        return await this.build(device);
+    }
+
+    async disconnect() {
+        await this.server.disconnect();
+    }
+
+    onDisconnected() {
+        console.log('Disconnected!');
+    }
+
+    async writeCommand(b1, b2, b3) {
+        const data = new Uint8Array([0xcc, 0xaa, 0x03, 0x40, b1, b2, b3]);
+        await this.charWrite.writeValue(data);
+    }
+
+    async writeRequest() {
+        const data = new Uint8Array([0xcc, 0xaa, 0x09, 0x01, 0x48, 0x54, 0x53, 0x20, 0x43, 0x6f, 0x6e, 0x74, 0x53]);
+        await this.charWrite.writeValue(data);
+    }
+
+    async startNotify() {
+        this.charNotify.startNotifications();
+        this.charNotify.addEventListener('characteristicvaluechanged', this.onNotify);
+        console.log("Registered event handler!");
+    }
+
+    onNotify(event) {
+        let value = event.target.value;
+        console.log("Got event! value=" + value);
+    }
+}
+
+async function onButtonClick() {
+    const soundBar = await SoundBar.connect();
+    try {
+        await soundBar.startNotify();
+        await soundBar.writeCommand(0x7e, 0xa2, 0x9d);
+        await soundBar.writeRequest();
+        await sleep(2000);
+        await soundBar.writeCommand(0x7e, 0xa3, 0x9c);
+        await soundBar.writeRequest();
+        await sleep(500);
+    } catch(error) {
+        log('Argh! ' + error);
+        log(error.stack);
+    } finally {
+        await soundBar.disconnect();
+    }
+}
+</script>
