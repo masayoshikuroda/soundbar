@@ -1,0 +1,30 @@
+<macro name="mute-on" icon="MUTE">
+    <assert-service description="YAS-108" uuid="945ca2b0-852c-4ab8-b654-354df41c2795">
+        <assert-characteristic description="Push" uuid="0c50e7fa-594c-408b-ae0d-b53b884b7c08">
+            <property name="WRITE" requirement="MANDATORY"/>
+        </assert-characteristic>
+        <assert-characteristic description="Configuration" uuid="5cafe9de-e7b0-4e0b-8fb9-2da91a7ae3ed">
+            <property name="NOTIFY" requirement="MANDATORY"/>
+            <assert-cccd />
+        </assert-characteristic>
+    </assert-service>
+    <write-descriptor description="Enable notifications" 
+        characteristic-uuid="5cafe9de-e7b0-4e0b-8fb9-2da91a7ae3ed" 
+        service-uuid="945ca2b0-852c-4ab8-b654-354df41c2795" 
+        uuid="00002902-0000-1000-8000-00805f9b34fb" 
+        value="0100" />
+    <write description="Mute OFF" 
+        characteristic-uuid="0c50e7fa-594c-408b-ae0d-b53b884b7c08" 
+        service-uuid="945ca2b0-852c-4ab8-b654-354df41c2795" 
+        value="ccaa03407ea39c" 
+        type="WRITE_COMMAND" />
+    <write description="Request notify" 
+        characteristic-uuid="0c50e7fa-594c-408b-ae0d-b53b884b7c08" 
+        service-uuid="945ca2b0-852c-4ab8-b654-354df41c2795" 
+        value="ccaa090148545320436f6e7453" 
+        type="WRITE_COMMAND" />
+    <wait-for-notification description="Wait for notification" 
+        characteristic-uuid="5cafe9de-e7b0-4e0b-8fb9-2da91a7ae3ed" 
+        service-uuid="945ca2b0-852c-4ab8-b654-354df41c2795" 
+        timeout="500" />
+</macro>
