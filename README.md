@@ -12,6 +12,13 @@ Yamama YAS108用のbluetoothリモコン。
 ## アドレスの取得
 
 scan.pyでターゲットアドレスを取得
+```
+soundbar % python scan.py
+--- 909D279B-325F-44A8-CA5D-8C63B6C941F6 ---
+LOCAL_NAME :  YamahaAV
+RSSI       :  -69
+soundbar % 
+```
 
 ## ステータスの取得
 

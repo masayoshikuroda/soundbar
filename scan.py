@@ -2,7 +2,7 @@ import sys
 import asyncio
 from bleak import BleakScanner
 
-name = 'YAS-108_BLE'
+TARGET = 'YAS-108_BLE'
 if len(sys.argv) > 1:
   name = sys.argv[1]
 
@@ -12,14 +12,15 @@ async def run():
     await asyncio.sleep(10.0)
     await scanner.stop()
 
-    for d in scanner.discovered_devices:
-        if d.name == name:
-            print("NAME    : ", d.name)
-            print("ADDRESS : ", d.address)
-            print("RSSI    : ", d.rssi)
-            print("DETAILS : ", d.details)
-            print("METADATA: ")
-            for k in d.metadata:
-                print("    ", k, d.metadata[k])
+    results = scanner.discovered_devices_and_advertisement_data
+    for id in results:
+        device = results[id][0]
+        data   = results[id][1]
+ 
+        if device.name == TARGET:
+            print("---", id, '---')
+            print("LOCAL_NAME : ", data.local_name)
+            print("RSSI       : ", data.rssi)
+
 loop = asyncio.get_event_loop()
 loop.run_until_complete(run())
