@@ -184,5 +184,6 @@ async def run(address):
         if client.is_connected:
             await client.disconnect()
 
-loop = asyncio.get_event_loop()
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 loop.run_until_complete(run(args.address))
