@@ -13,10 +13,10 @@
         service-uuid="945ca2b0-852c-4ab8-b654-354df41c2795" 
         uuid="00002902-0000-1000-8000-00805f9b34fb" 
         value="0100" />
-    <write description="Mute OFF" 
+    <write description="Surround TV" 
         characteristic-uuid="0c50e7fa-594c-408b-ae0d-b53b884b7c08" 
         service-uuid="945ca2b0-852c-4ab8-b654-354df41c2795" 
-        value="ccaa03407ea39c" 
+        value="ccaa03407ef14e" 
         type="WRITE_COMMAND" />
     <write description="Request notify" 
         characteristic-uuid="0c50e7fa-594c-408b-ae0d-b53b884b7c08" 

@@ -26,5 +26,5 @@
     <wait-for-notification description="Wait for notification" 
         characteristic-uuid="5cafe9de-e7b0-4e0b-8fb9-2da91a7ae3ed" 
         service-uuid="945ca2b0-852c-4ab8-b654-354df41c2795" 
-        timeout="500" />
+        timeout="2000" />
 </macro>
