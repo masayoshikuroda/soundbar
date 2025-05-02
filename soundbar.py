@@ -5,6 +5,8 @@ import json
 from argparse import ArgumentParser
 from bleak import BleakClient
 
+UUID_SERVICE          = "945ca2b0-852c-4ab8-b654-354df41c2795"
+
 UUID_MODEL_NUMBER     = "00002a24-0000-1000-8000-00805f9b34fb"
 UUID_DEVICE_NAME      = "00002a00-0000-1000-8000-00805f9b34fb"
 UUID_MANUFACTURE_NAME = "00002a29-0000-1000-8000-00805f9b34fb"
@@ -45,19 +47,6 @@ WRITE_CMD_VOLUME_DOWN           = WRITE_CMD_BASE + '781f 26'
 
 WRITE_CMD_MUTE_OFF              = WRITE_CMD_BASE + '7ea3 9c'
 WRITE_CMD_MUTE_ON               = WRITE_CMD_BASE + '7ea2 9d'
-
-argparser =  ArgumentParser(description='Connect Sound Bar via bluetooth and send commad.')
-argparser.add_argument('address', help='Bluetooth device address')
-argparser.add_argument('--input',       choices=['hdmi', 'bt', 'tv', 'analog'])
-argparser.add_argument('--surround',    choices=['tv', 'stereo', 'movie', 'music', 'sports', 'game'])
-argparser.add_argument('--sound_3d',    choices=['on', 'off'])
-argparser.add_argument('--clear_voice', choices=['on', 'off'])
-argparser.add_argument('--bass_ext',    choices=['on', 'off'])
-argparser.add_argument('--volume',      choices=['up', 'down'])
-argparser.add_argument('--subwoofer',   choices=['up', 'down'])
-argparser.add_argument('--mute',        choices=['on', 'off'])
-
-args = argparser.parse_args()
 
 def get_surround(code):
     if code == 0x000a:
@@ -100,12 +89,14 @@ def on_notify(sender, data: bytearray):
         status['bass_ext'] = is_bass_ext(data[15])
         print(json.dumps(status, ensure_ascii=False, indent=4))
 
-async def get_info(client):
-    device_name = await client.read_gatt_char(UUID_DEVICE_NAME)
-    print("Device Name: {0}".format("".join(map(chr, device_name))))
+async def print_info(client):
+    print(f"Address: {client.address}")
     
-    manu_name = await client.read_gatt_char(UUID_MANUFACTURE_NAME)
-    print("Manufacture Name: {0}".format("".join(map(chr, manu_name))))
+    device_name = str(await client.read_gatt_char(UUID_DEVICE_NAME), 'UTF-8')
+    print(f"Device Name: {device_name}")
+    
+    manu_name = str(await client.read_gatt_char(UUID_MANUFACTURE_NAME), 'UTF-8')
+    print(f"Manufacture Name: {manu_name}")
 
 async def write_command(client, command):
     bytes = bytearray.fromhex(command.replace(' ', ''))
@@ -119,13 +110,13 @@ async def write_command_mode(client, on_command, off_command, mode):
 async def write_command_status(client):
     await write_command(client, WRITE_REQUEST_NOTIFY)
 
-async def run(address):
-    client = BleakClient(address)
+async def amain(args):
+    client = BleakClient(args.address)
     try:
         await client.connect(tomeout=5)
         await client.start_notify(UUID_NOTIFY, on_notify)
 
-#        await get_info(client)
+#        await print_info(client)
 
         if args.input == 'hdmi':
             await write_command(client, WRITE_CMD_INPUT_HDMI)
@@ -184,6 +175,18 @@ async def run(address):
         if client.is_connected:
             await client.disconnect()
 
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-loop.run_until_complete(run(args.address))
+if __name__ == "__main__":
+    argparser =  ArgumentParser(description='Connect Sound Bar via bluetooth and send commad.')
+    argparser.add_argument('address', help='Bluetooth device address')
+    argparser.add_argument('--input',       choices=['hdmi', 'bt', 'tv', 'analog'])
+    argparser.add_argument('--surround',    choices=['tv', 'stereo', 'movie', 'music', 'sports', 'game'])
+    argparser.add_argument('--sound_3d',    choices=['on', 'off'])
+    argparser.add_argument('--clear_voice', choices=['on', 'off'])
+    argparser.add_argument('--bass_ext',    choices=['on', 'off'])
+    argparser.add_argument('--volume',      choices=['up', 'down'])
+    argparser.add_argument('--subwoofer',   choices=['up', 'down'])
+    argparser.add_argument('--mute',        choices=['on', 'off'])
+
+    args = argparser.parse_args()
+
+    asyncio.run(amain(args))

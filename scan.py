@@ -1,29 +1,22 @@
 import sys
 import asyncio
-from bleak import BleakScanner
+from bleak import BleakScanner, BleakClient
+import soundbar
 
-TARGET = 'YAS-108_BLE'
-if len(sys.argv) > 1:
-  name = sys.argv[1]
-else:
-  name = TARGET
+async def find_device(uuid):
+    stop_event = asyncio.Event()
 
-async def run():
-    scanner = BleakScanner()
-    await scanner.start()
-    await asyncio.sleep(10.0)
-    await scanner.stop()
+    def callback(device, advertising_data):
+        stop_event.set()
 
-    results = scanner.discovered_devices_and_advertisement_data
-    for id in results:
-        device = results[id][0]
-        data   = results[id][1]
- 
-        if device.name == name:
-            print("---", id, '---')
-            print("LOCAL_NAME : ", data.local_name)
-            print("RSSI       : ", data.rssi)
+    async with BleakScanner(detection_callback=callback, service_uuids=[uuid]) as scanner:
+        await stop_event.wait()
+        return scanner.discovered_devices[0].address
+    
+async def amain():
+    address = await find_device(soundbar.UUID_SERVICE)
+    async with BleakClient(address) as client:
+        await soundbar.print_info(client)
 
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-loop.run_until_complete(run())
+if __name__ == "__main__":
+    asyncio.run(amain())
